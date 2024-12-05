@@ -62,6 +62,17 @@ public class ClientIntegrationTest {
     }
 
     @Test
+    @Tag("T-002")
+    @SneakyThrows
+    void shouldPrintNoEventsWhenUserRunsHistoryWithEmptyEventsFile() {
+        // when
+        client.run("history");
+
+        // then
+        assertEquals("No events found", getOutput());
+    }
+
+    @Test
     @Tag("T-003")
     @SneakyThrows
     void shouldWriteTwoEventsWhenUserRunsServer() {
