@@ -1,9 +1,7 @@
 package com.example;
 
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +35,14 @@ public class ClientIntegrationTest {
     @BeforeEach
     public void setUp() {
         System.setOut(new PrintStream(outputStreamCaptor));
+        if (tempDir.exists()) {
+            File[] files = tempDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    file.delete();
+                }
+            }
+        }
     }
 
     @AfterEach
@@ -45,27 +51,26 @@ public class ClientIntegrationTest {
     }
 
     @Test
+    @Tag("T-001")
+    @SneakyThrows
+    void shouldPrintNoEventsWhenUserRunsStatusWithEmptyEventsFile() {
+        // when
+        client.run("status");
+
+        // then
+        assertEquals("No events found", getOutput());
+    }
+
+    @Test
+    @Tag("T-003")
     @SneakyThrows
     void shouldWriteTwoEventsWhenUserRunsServer() {
         // when
         client.run("up");
 
         // then
-        assertTrue("""
-                Starting...
-                Status: UP""".equals(getOutput()) || """
-                Starting...
-                Status: FAILED""".equals(getOutput()));
-    }
-
-    @Test
-    @SneakyThrows
-    void shouldPrintNoEventsWhenUserRunsStatus() {
-        // when
-        client.run("status");
-
-        // then
-        assertEquals("No events found", getOutput());
+        assertTrue("Starting...\r\nStatus: UP".equals(getOutput()) ||
+                "Starting...\r\nStatus: FAILED".equals(getOutput()));
     }
 
     private String getOutput() {
