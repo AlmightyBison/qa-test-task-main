@@ -125,6 +125,25 @@ public class ClientIntegrationTest {
         assertEquals("Already UP", getOutput());
     }
 
+    @Test
+    @Tag("T-006")
+    @SneakyThrows
+    void shouldPrintExpectedStatusAndHistoryAfterServerRunTwice() {
+        // Given
+        shouldPrintAlreadyUpWhenServerIsAlreadyRun();
+        outputStreamCaptor.reset();
+
+        // When
+        checkServerStatus("up", "0");
+
+        // Then
+        String currentTimestamp = getCurrentTimestamp();
+        assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
+        assertTrue(checkHistoryLine(1, "UP", currentTimestamp), getOutput());
+        checkHistoryLength(2);
+
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
@@ -157,6 +176,13 @@ public class ClientIntegrationTest {
         if (isContains) outputStreamCaptor.reset();
 
         return isContains;
+    }
+
+    private void checkHistoryLength(int length) throws ParseException, IOException {
+        client.run("history");
+
+        String[] lines = getOutput().split("\n");
+        assertEquals(length, lines.length, "Current history length is: " + lines.length);
     }
 
     private String getCurrentTimestamp() {
