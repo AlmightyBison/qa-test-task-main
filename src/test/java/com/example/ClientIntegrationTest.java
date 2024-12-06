@@ -254,6 +254,23 @@ public class ClientIntegrationTest {
         checkHistoryLength(4);
     }
 
+    @Test
+    @Tag("T-015")
+    @SneakyThrows
+    void shouldPrintAlreadyDownWithEmptyEventsFile() {
+        // Assumption of the behavior
+        alreadyDown();
+    }
+
+    @Test
+    @Tag("T-016")
+    @SneakyThrows
+    void shouldPrintAlreadyDownWhenServerIsAlreadyDown() {
+        serverRunUp();
+        serverRunDown();
+        alreadyDown();
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
@@ -323,5 +340,22 @@ public class ClientIntegrationTest {
 
         // Then
         checkServerStatus("up", String.valueOf(sec));
+    }
+
+    private void serverRunDown() throws ParseException, IOException {
+        // When
+        client.run("down");
+        outputStreamCaptor.reset();
+
+        // Then
+        checkServerStatus("down", "0");
+    }
+
+    private void alreadyDown() throws ParseException, IOException {
+        // When
+        client.run("down");
+
+        // Then
+        assertEquals("Already DOWN", getOutput());
     }
 }
