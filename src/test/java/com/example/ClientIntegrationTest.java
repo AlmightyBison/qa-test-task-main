@@ -98,8 +98,7 @@ public class ClientIntegrationTest {
         outputStreamCaptor.reset();
 
         // Then
-        // Assumption: there should be "Status: FAILED" instead of "No events found"
-        checkServerStatus("upOrNotFound", "0");
+        checkServerStatus("up", "0");
     }
 
     @Test
@@ -212,6 +211,21 @@ public class ClientIntegrationTest {
                 "Stopping...\r\nStatus: FAILED".equals(getOutput()), getOutput());
     }
 
+    @Test
+    @Tag("T-013")
+    @SneakyThrows
+    void shouldPrintExpectedStatusAfterServerDown() {
+        // Given
+        serverRunUp();
+
+        // When
+        client.run("down");
+        outputStreamCaptor.reset();
+
+        // Then
+        checkServerStatus("down", "0");
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
@@ -225,9 +239,6 @@ public class ClientIntegrationTest {
                     + " seconds", getOutput());
             case "down" -> assertEquals("Status: DOWN", getOutput());
             case "notFound" -> assertEquals("No events found", getOutput());
-            case "upOrNotFound" -> assertTrue(("Status: UP\r\nUptime: " + uptime
-                    + " seconds").equals(getOutput()) ||
-                    "No events found".equals(getOutput()), getOutput());
         }
         outputStreamCaptor.reset();
     }
