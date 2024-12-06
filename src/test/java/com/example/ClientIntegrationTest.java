@@ -197,6 +197,21 @@ public class ClientIntegrationTest {
         checkHistoryLength(2);
     }
 
+    @Test
+    @Tag("T-012")
+    @SneakyThrows
+    void shouldWriteTwoEventsWhenUserDownServer() {
+        // Given
+        serverRunUp();
+
+        // When
+        client.run("down");
+
+        // Then
+        assertTrue("Stopping...\r\nStatus: DOWN".equals(getOutput()) ||
+                "Stopping...\r\nStatus: FAILED".equals(getOutput()), getOutput());
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
