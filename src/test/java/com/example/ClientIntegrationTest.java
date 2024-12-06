@@ -114,6 +114,9 @@ public class ClientIntegrationTest {
         assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
         assertTrue(checkHistoryLine(1, "UP", currentTimestamp) ||
                 checkHistoryLine(1, "FAILED", currentTimestamp), getOutput());
+
+        // And
+        checkHistoryLength(2);
     }
 
     @Test
@@ -150,6 +153,8 @@ public class ClientIntegrationTest {
         String currentTimestamp = getCurrentTimestamp();
         assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
         assertTrue(checkHistoryLine(1, "UP", currentTimestamp), getOutput());
+
+        // And
         checkHistoryLength(2);
     }
 
@@ -193,6 +198,8 @@ public class ClientIntegrationTest {
         // Then
         assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
         assertTrue(checkHistoryLine(1, "UP", currentTimestamp), getOutput());
+
+        // And
         checkHistoryLength(2);
     }
 
@@ -224,6 +231,27 @@ public class ClientIntegrationTest {
 
         // Then
         checkServerStatus("down", "0");
+    }
+
+    @Test
+    @Tag("T-014")
+    @SneakyThrows
+    void shouldPrintExpectedHistoryAfterServerDown() {
+        // Given
+        serverRunUp();
+
+        // When
+        String currentTimestamp = getCurrentTimestamp();
+        client.run("down");
+        outputStreamCaptor.reset();
+
+        // Then
+        assertTrue(checkHistoryLine(2, "STOPPING", currentTimestamp), getOutput());
+        assertTrue(checkHistoryLine(3, "DOWN", currentTimestamp) ||
+                checkHistoryLine(3, "FAILED", currentTimestamp), getOutput());
+
+        // And
+        checkHistoryLength(4);
     }
 
     private String getOutput() {
