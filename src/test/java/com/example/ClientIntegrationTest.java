@@ -86,13 +86,13 @@ public class ClientIntegrationTest {
 
         // Then
         assertTrue("Starting...\r\nStatus: UP".equals(getOutput()) ||
-                "Starting...\r\nStatus: FAILED".equals(getOutput()));
+                "Starting...\r\nStatus: FAILED".equals(getOutput()), getOutput());
     }
 
     @Test
     @Tag("T-004")
     @SneakyThrows
-    void shouldPrintExpectedStatusAndHistoryAfterServerRun() {
+    void shouldPrintExpectedStatusAfterServerRun() {
         // When
         client.run("up");
         outputStreamCaptor.reset();
@@ -100,8 +100,17 @@ public class ClientIntegrationTest {
         // Then
         // Assumption: there should be "Status: FAILED" instead of "No events found"
         checkServerStatus("upOrNotFound", "0");
+    }
 
-        // And
+    @Test
+    @Tag("T-005")
+    @SneakyThrows
+    void shouldPrintExpectedHistoryAfterServerRun() {
+        // When
+        client.run("up");
+        outputStreamCaptor.reset();
+
+        // Then
         String currentTimestamp = getCurrentTimestamp();
         assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
         assertTrue(checkHistoryLine(1, "UP", currentTimestamp) ||
@@ -109,33 +118,34 @@ public class ClientIntegrationTest {
     }
 
     @Test
-    @Tag("T-005")
+    @Tag("T-006")
     @SneakyThrows
     void shouldPrintAlreadyUpWhenServerIsAlreadyRun() {
-        // Given
-        client.run("up");
-        outputStreamCaptor.reset();
-
-        // When
-        checkServerStatus("up", "0");
-
-        // And
-        client.run("up");
-
-        // Then
-        assertEquals("Already UP", getOutput());
+        serverRunUp();
+        alreadyUp();
     }
 
     @Test
-    @Tag("T-006")
+    @Tag("T-007")
     @SneakyThrows
-    void shouldPrintExpectedStatusAndHistoryAfterServerRunTwice() {
+    void shouldPrintExpectedStatusAfterServerRunTwice() {
         // Given
-        shouldPrintAlreadyUpWhenServerIsAlreadyRun();
+        serverRunUp();
+        alreadyUp();
         outputStreamCaptor.reset();
 
         // When
         checkServerStatus("up", "0");
+    }
+
+    @Test
+    @Tag("T-008")
+    @SneakyThrows
+    void shouldPrintExpectedHistoryAfterServerRunTwice() {
+        // Given
+        serverRunUp();
+        alreadyUp();
+        outputStreamCaptor.reset();
 
         // Then
         String currentTimestamp = getCurrentTimestamp();
@@ -145,22 +155,46 @@ public class ClientIntegrationTest {
     }
 
     @Test
-    @Tag("T-007")
+    @Tag("T-009")
     @SneakyThrows
     void shouldPrintExpectedUptimeWhenServerRun() {
+        serverRunUp();
+        uptimeFor(3);
+    }
+
+    @Test
+    @Tag("T-010")
+    @SneakyThrows
+    void shouldPrintExpectedStatusAfterServerRunForSomeTime() {
         // Given
-        client.run("up");
-        outputStreamCaptor.reset();
+        serverRunUp();
+        uptimeFor(4);
 
         // When
-        checkServerStatus("up", "0");
-
-        // And
-        // Server is working for 3 sec
-        sleep(3000);
+        // Server is working for extra 1 sec
+        sleep(1000);
 
         // Then
-        checkServerStatus("up", "3");
+        checkServerStatus("up", "5");
+    }
+
+    @Test
+    @Tag("T-011")
+    @SneakyThrows
+    void shouldPrintExpectedHistoryAfterServerRunForSomeTime() {
+        // Given
+        String currentTimestamp = getCurrentTimestamp();
+        serverRunUp();
+        uptimeFor(3);
+
+        // When
+        // Server is working for extra 1 sec
+        sleep(1000);
+
+        // Then
+        assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
+        assertTrue(checkHistoryLine(1, "UP", currentTimestamp), getOutput());
+        checkHistoryLength(2);
     }
 
     private String getOutput() {
@@ -178,7 +212,7 @@ public class ClientIntegrationTest {
             case "notFound" -> assertEquals("No events found", getOutput());
             case "upOrNotFound" -> assertTrue(("Status: UP\r\nUptime: " + uptime
                     + " seconds").equals(getOutput()) ||
-                    "No events found".equals(getOutput()));
+                    "No events found".equals(getOutput()), getOutput());
         }
         outputStreamCaptor.reset();
     }
@@ -208,5 +242,32 @@ public class ClientIntegrationTest {
         long timestamp = System.currentTimeMillis();
         LocalDateTime dateTime = LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.UTC);
         return String.valueOf(dateTime);
+    }
+
+    private void serverRunUp() throws ParseException, IOException {
+        // When
+        client.run("up");
+        outputStreamCaptor.reset();
+
+        // Then
+        checkServerStatus("up", "0");
+    }
+
+    private void alreadyUp() throws ParseException, IOException {
+        // When
+        client.run("up");
+
+        // Then
+        assertEquals("Already UP", getOutput());
+    }
+
+    private void uptimeFor(int sec)
+            throws ParseException, IOException, InterruptedException {
+        // When
+        // Server is working for X sec
+        sleep(sec * 1000L);
+
+        // Then
+        checkServerStatus("up", String.valueOf(sec));
     }
 }
