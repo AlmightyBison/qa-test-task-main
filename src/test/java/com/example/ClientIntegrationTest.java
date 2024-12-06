@@ -339,7 +339,31 @@ public class ClientIntegrationTest {
 
         // Then
         uptimeFor(2);
+    }
 
+    @Test
+    @Tag("T-020")
+    @SneakyThrows
+    void shouldPrintExpectedHistoryAfterServerDownAndRunAgain() {
+        // Given
+        serverRunUp();
+        uptimeFor(3);
+
+        // When
+        serverRunDown();
+
+        // And
+        String currentTimestamp = getCurrentTimestamp();
+        client.run("up");
+        outputStreamCaptor.reset();
+
+        // And
+        assertTrue(checkHistoryLine(4, "STARTING", currentTimestamp), getOutput());
+        assertTrue(checkHistoryLine(5, "UP", currentTimestamp) ||
+                checkHistoryLine(5, "FAILED", currentTimestamp), getOutput());
+
+        // Then
+        checkHistoryLength(6);
     }
 
     private String getOutput() {
