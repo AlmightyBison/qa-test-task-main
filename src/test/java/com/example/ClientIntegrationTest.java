@@ -322,6 +322,26 @@ public class ClientIntegrationTest {
         checkHistoryLength(4);
     }
 
+    @Test
+    @Tag("T-019")
+    @SneakyThrows
+    void shouldResetUptimeAfterServerDownAndRunAgain() {
+        // Given
+        serverRunUp();
+        uptimeFor(3);
+
+        // When
+        serverRunDown();
+        serverRunUp();
+
+        // And
+        checkServerStatus("up", "0");
+
+        // Then
+        uptimeFor(2);
+
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
