@@ -58,10 +58,10 @@ public class ClientIntegrationTest {
     @Tag("T-001")
     @SneakyThrows
     void shouldPrintNoEventsWhenUserRunsStatusWithEmptyEventsFile() {
-        // when
+        // When
         client.run("status");
 
-        // then
+        // Then
         assertEquals("No events found", getOutput());
     }
 
@@ -69,10 +69,10 @@ public class ClientIntegrationTest {
     @Tag("T-002")
     @SneakyThrows
     void shouldPrintNoEventsWhenUserRunsHistoryWithEmptyEventsFile() {
-        // when
+        // When
         client.run("history");
 
-        // then
+        // Then
         assertEquals("No events found", getOutput());
     }
 
@@ -80,10 +80,10 @@ public class ClientIntegrationTest {
     @Tag("T-003")
     @SneakyThrows
     void shouldWriteTwoEventsWhenUserRunsServer() {
-        // when
+        // When
         client.run("up");
 
-        // then
+        // Then
         assertTrue("Starting...\r\nStatus: UP".equals(getOutput()) ||
                 "Starting...\r\nStatus: FAILED".equals(getOutput()));
     }
@@ -91,20 +91,38 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-004")
     @SneakyThrows
-    void shouldShowExpectedStatusAndHistoryAfterServerRun() {
-        // when
+    void shouldPrintExpectedStatusAndHistoryAfterServerRun() {
+        // When
         client.run("up");
         outputStreamCaptor.reset();
 
-        // then
+        // Then
         // Assumption: there should be "Status: FAILED" instead of "No events found"
         checkServerStatus("upOrNotFound", "0");
 
-        // and
+        // And
         String currentTimestamp = getCurrentTimestamp();
         assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
         assertTrue(checkHistoryLine(1, "UP", currentTimestamp) ||
                 checkHistoryLine(1, "FAILED", currentTimestamp), getOutput());
+    }
+
+    @Test
+    @Tag("T-005")
+    @SneakyThrows
+    void shouldPrintAlreadyUpWhenServerIsAlreadyRun() {
+        // Given
+        client.run("up");
+        outputStreamCaptor.reset();
+
+        // When
+        checkServerStatus("up", "0");
+
+        // And
+        client.run("up");
+
+        // Then
+        assertEquals("Already UP", getOutput());
     }
 
     private String getOutput() {
@@ -116,18 +134,13 @@ public class ClientIntegrationTest {
         client.run("status");
 
         switch (condition) {
-            case "up":
-                assertEquals("Status: UP\r\nUptime: " + uptime + " seconds",
-                        getOutput(), "Got: " + getOutput());
-            case "down":
-                assertEquals("Status: DOWN",
-                        getOutput(), "Got: " + getOutput());
-            case "notFound":
-                assertEquals("No events found",
-                        getOutput(), "Got: " + getOutput());
-            case "upOrNotFound":
-                assertTrue(("Status: UP\r\nUptime: " + uptime + " seconds").equals(getOutput()) ||
-                        "No events found".equals(getOutput()), "Got: " + getOutput());
+            case "up" -> assertEquals("Status: UP\r\nUptime: " + uptime
+                    + " seconds", getOutput());
+            case "down" -> assertEquals("Status: DOWN", getOutput());
+            case "notFound" -> assertEquals("No events found", getOutput());
+            case "upOrNotFound" -> assertTrue(("Status: UP\r\nUptime: " + uptime
+                    + " seconds").equals(getOutput()) ||
+                    "No events found".equals(getOutput()));
         }
         outputStreamCaptor.reset();
     }
