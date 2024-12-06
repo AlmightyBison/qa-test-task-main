@@ -15,6 +15,7 @@ import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -141,7 +142,25 @@ public class ClientIntegrationTest {
         assertTrue(checkHistoryLine(0, "STARTING", currentTimestamp), getOutput());
         assertTrue(checkHistoryLine(1, "UP", currentTimestamp), getOutput());
         checkHistoryLength(2);
+    }
 
+    @Test
+    @Tag("T-007")
+    @SneakyThrows
+    void shouldPrintExpectedUptimeWhenServerRun() {
+        // Given
+        client.run("up");
+        outputStreamCaptor.reset();
+
+        // When
+        checkServerStatus("up", "0");
+
+        // And
+        // Server is working for 3 sec
+        sleep(3000);
+
+        // Then
+        checkServerStatus("up", "3");
     }
 
     private String getOutput() {
