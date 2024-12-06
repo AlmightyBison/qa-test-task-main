@@ -300,6 +300,28 @@ public class ClientIntegrationTest {
         checkServerStatus("down", "0");
     }
 
+    @Test
+    @Tag("T-018")
+    @SneakyThrows
+    void shouldPrintExpectedHistoryAfterServerAlreadyDown() {
+        // Given
+        serverRunUp();
+
+        // When
+        String currentTimestamp = getCurrentTimestamp();
+        serverRunDown();
+        alreadyDown();
+        outputStreamCaptor.reset();
+
+        // Then
+        assertTrue(checkHistoryLine(2, "STOPPING", currentTimestamp), getOutput());
+        assertTrue(checkHistoryLine(3, "DOWN", currentTimestamp) ||
+                checkHistoryLine(3, "FAILED", currentTimestamp), getOutput());
+
+        // And
+        checkHistoryLength(4);
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
