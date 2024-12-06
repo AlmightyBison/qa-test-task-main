@@ -123,7 +123,10 @@ public class ClientIntegrationTest {
     @Tag("T-006")
     @SneakyThrows
     void shouldPrintAlreadyUpWhenServerIsAlreadyRun() {
+        // When
         serverRunUp();
+
+        // Then
         alreadyUp();
     }
 
@@ -133,10 +136,12 @@ public class ClientIntegrationTest {
     void shouldPrintExpectedStatusAfterServerRunTwice() {
         // Given
         serverRunUp();
+
+        // When
         alreadyUp();
         outputStreamCaptor.reset();
 
-        // When
+        // Then
         checkServerStatus("up", "0");
     }
 
@@ -162,7 +167,10 @@ public class ClientIntegrationTest {
     @Tag("T-009")
     @SneakyThrows
     void shouldPrintExpectedUptimeWhenServerRun() {
+        // When
         serverRunUp();
+
+        // Then
         uptimeFor(3);
     }
 
@@ -266,9 +274,30 @@ public class ClientIntegrationTest {
     @Tag("T-016")
     @SneakyThrows
     void shouldPrintAlreadyDownWhenServerIsAlreadyDown() {
+        // Given
         serverRunUp();
+
+        // When
+        serverRunDown();
+
+        // Then
+        alreadyDown();
+    }
+
+    @Test
+    @Tag("T-017")
+    @SneakyThrows
+    void shouldPrintExpectedStatusAfterServerAlreadyDown() {
+        // Given
+        serverRunUp();
+
+        // When
         serverRunDown();
         alreadyDown();
+        outputStreamCaptor.reset();
+
+        // Then
+        checkServerStatus("down", "0");
     }
 
     private String getOutput() {
