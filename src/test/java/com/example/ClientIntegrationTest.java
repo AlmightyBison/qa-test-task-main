@@ -410,6 +410,21 @@ public class ClientIntegrationTest {
         assertEquals("No events found", getOutput());
     }
 
+    @Test
+    @Tag("T-024")
+    @SneakyThrows
+    void shouldPrintCommandOptionsWhenUserUseEmptyCommand() {
+        // When
+        client.run();
+
+        // Then
+        assertTrue(getOutput().contains("Usage: vpn-client <command> [options]"));
+        assertTrue(getOutput().contains("status"));
+        assertTrue(getOutput().contains("up"));
+        assertTrue(getOutput().contains("down"));
+        assertTrue(getOutput().contains("history"));
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
