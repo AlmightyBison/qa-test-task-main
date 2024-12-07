@@ -711,6 +711,27 @@ public class ClientIntegrationTest {
         }
     }
 
+    @Test
+    @Tag("T-038")
+    @SneakyThrows
+    void shouldPrintErrorForHistoryWithInvalidStatus() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String[] args = {
+                "history",
+                "--status", "STATUS",
+        };
+        try {
+            client.run(args);
+
+            // Then
+        } catch (Exception e) {
+            assertTrue(e.toString().contains("No enum constant com.example.Status."), e.toString());
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
