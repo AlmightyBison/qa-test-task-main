@@ -558,6 +558,26 @@ public class ClientIntegrationTest {
         assertEquals("No events found", getOutput());
     }
 
+    @Test
+    @Tag("T-031")
+    @SneakyThrows
+    void shouldNotPrintHistoryInInvalidRangeFrom() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String fromDate = LocalDate.now().plusDays(10).toString();
+
+        String[] args = {
+                "history",
+                "--from", fromDate,
+        };
+        client.run(args);
+
+        // Then
+        assertEquals("No events found", getOutput());
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
