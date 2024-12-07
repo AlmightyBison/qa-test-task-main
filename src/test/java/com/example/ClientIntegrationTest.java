@@ -666,6 +666,29 @@ public class ClientIntegrationTest {
         }
     }
 
+    @Test
+    @Tag("T-036")
+    @SneakyThrows
+    void shouldPrintHistoryInDescOrder() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String[] args = {
+                "history",
+                "--sort", "desc",
+        };
+        client.run(args);
+
+        //Then
+        List<LocalDateTime> timestamps = getTimestampsFromOutput(getOutput());
+
+        for (int i = 0; i < timestamps.size() - 1; i++) {
+            assertTrue(timestamps.get(i).isAfter(timestamps.get(i + 1)) ||
+                    timestamps.get(i).isEqual(timestamps.get(i + 1)), timestamps.toString());
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
