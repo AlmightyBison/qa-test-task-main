@@ -480,6 +480,34 @@ public class ClientIntegrationTest {
         }
     }
 
+    @Test
+    @Tag("T-028")
+    @SneakyThrows
+    void shouldPrintHistoryInValidRangeFrom() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String fromDate = LocalDate.now().toString();
+        String daysOne = LocalDate.now().plusDays(1).toString();
+        String daysTwo = LocalDate.now().plusDays(2).toString();
+
+        String[] args = {
+                "history",
+                "--from", fromDate,
+        };
+        client.run(args);
+
+        // Then
+        for (int i = 0; i < getOutputLength(); i++) {
+            if (i < 6) {
+                assertTrue(getOutputLine(i).contains(daysOne), getOutput());
+            } else {
+                assertTrue(getOutputLine(i).contains(daysTwo), getOutput());
+            }
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
@@ -579,13 +607,14 @@ public class ClientIntegrationTest {
         assertEquals("Already DOWN", getOutput());
     }
 
-    private void generateEventsInJsonFile() throws IOException {
+    private void generateEventsInJsonFile() throws IOException, InterruptedException {
         ArrayList<Status> arrStatuses = getArrStatuses();
 
         for (int i = 1; i < 3; i++) {
             for (int j = 0; j < arrStatuses.size(); j++) {
                 writeEventToFile(new Event(arrStatuses.get(j), getCurrentDateMinusDaysAndMinutes(i, j)));
                 writeEventToFile(new Event(arrStatuses.get(j), getCurrentDatePlusDaysAndMinutes(i, j)));
+                sleep(100);
             }
         }
     }
