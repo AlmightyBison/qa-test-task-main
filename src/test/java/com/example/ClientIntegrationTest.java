@@ -1,5 +1,7 @@
 package com.example;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.cli.ParseException;
 import org.junit.jupiter.api.*;
@@ -10,12 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.*;
 
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -455,6 +456,30 @@ public class ClientIntegrationTest {
         assertEquals("No events found", getOutput());
     }
 
+    @Test
+    @Tag("T-027")
+    @SneakyThrows
+    void shouldPrintHistoryInValidRangeFromTo() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String fromDate = LocalDate.now().minusDays(2).toString();
+        String toDate = LocalDate.now().minusDays(1).toString();
+
+        String[] args = {
+                "history",
+                "--from", fromDate,
+                "--to", toDate
+        };
+        client.run(args);
+
+        //Then
+        for (int i = 0; i < getOutputLength(); i++) {
+            assertTrue(getOutputLine(i).contains(fromDate), getOutput());
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
@@ -491,6 +516,17 @@ public class ClientIntegrationTest {
 
         String[] lines = getOutput().split("\n");
         assertEquals(length, lines.length, "Current history length is: " + lines.length);
+    }
+
+    private int getOutputLength() {
+        String[] lines = getOutput().split("\n");
+        return lines.length;
+    }
+
+
+    private String getOutputLine(int linePos) {
+        String[] lines = getOutput().split("\n");
+        return lines[linePos];
     }
 
     private String getCurrentTimestamp() {
@@ -541,5 +577,42 @@ public class ClientIntegrationTest {
 
         // Then
         assertEquals("Already DOWN", getOutput());
+    }
+
+    private void generateEventsInJsonFile() throws IOException {
+        ArrayList<Status> arrStatuses = getArrStatuses();
+
+        for (int i = 1; i < 3; i++) {
+            for (int j = 0; j < arrStatuses.size(); j++) {
+                writeEventToFile(new Event(arrStatuses.get(j), getCurrentDateMinusDaysAndMinutes(i, j)));
+                writeEventToFile(new Event(arrStatuses.get(j), getCurrentDatePlusDaysAndMinutes(i, j)));
+            }
+        }
+    }
+
+    public ArrayList<Status> getArrStatuses() {
+        return new ArrayList<>
+                (List.of(Status.STARTING, Status.UP, Status.STOPPING, Status.FAILED, Status.STOPPING, Status.DOWN));
+    }
+
+    private long getCurrentDateMinusDaysAndMinutes(int days, int minutes) {
+        return LocalDateTime.now().minusDays(days).plusMinutes(minutes).toEpochSecond(ZoneOffset.UTC) * 1000;
+    }
+
+    private long getCurrentDatePlusDaysAndMinutes(int days, int minutes) {
+        return LocalDateTime.now().plusDays(days).plusMinutes(minutes).toEpochSecond(ZoneOffset.UTC) * 1000;
+    }
+
+    private void writeEventToFile(Event event) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        File eventsFile = new File(tempDir, "events.json");
+
+        if (eventsFile.createNewFile()) {
+            objectMapper.writeValue(eventsFile, Collections.emptyList());
+        }
+        List<Event> events = objectMapper.readValue(eventsFile, new TypeReference<>() {
+        });
+        events.add(event);
+        objectMapper.writeValue(eventsFile, events);
     }
 }
