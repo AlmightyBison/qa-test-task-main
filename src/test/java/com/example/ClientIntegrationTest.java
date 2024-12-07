@@ -380,6 +380,36 @@ public class ClientIntegrationTest {
         assertEquals(("Unknown command: " + command), getOutput());
     }
 
+    @Test
+    @Tag("T-022")
+    @SneakyThrows
+    void shouldNotSaveNewStatusAfterInvalidCommand() {
+        // Given
+        client.run("command");
+        outputStreamCaptor.reset();
+
+        // When
+        client.run("status");
+
+        // Then
+        assertEquals("No events found", getOutput());
+    }
+
+    @Test
+    @Tag("T-023")
+    @SneakyThrows
+    void shouldNotSaveNewHistoryAfterInvalidCommand() {
+        // Given
+        client.run("command");
+        outputStreamCaptor.reset();
+
+        // When
+        client.run("history");
+
+        // Then
+        assertEquals("No events found", getOutput());
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
