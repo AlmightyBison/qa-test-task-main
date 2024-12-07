@@ -689,6 +689,28 @@ public class ClientIntegrationTest {
         }
     }
 
+    @ParameterizedTest
+    @Tag("T-037")
+    @ValueSource(strings = {"STARTING", "UP", "STOPPING", "DOWN", "FAILED"})
+    @SneakyThrows
+    void shouldPrintHistoryWithSpecificStatus(String status) {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String[] args = {
+                "history",
+                "--status", status,
+        };
+        client.run(args);
+
+        //Then
+        for (int i = 0; i < getOutputLength(); i++) {
+            assertTrue(getOutputLine(i).contains(status),
+                    "Status: " + status + "\n" + getOutput());
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
