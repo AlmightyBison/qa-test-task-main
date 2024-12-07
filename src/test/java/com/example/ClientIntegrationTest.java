@@ -617,7 +617,29 @@ public class ClientIntegrationTest {
 
             // Then
         } catch (Exception e) {
-            assertTrue(e.toString().contains("Text '" + date + "' could not be parsed"));
+            assertTrue(e.toString().contains("Text '" + date + "' could not be parsed"), e.toString());
+        }
+    }
+
+    @Test
+    @Tag("T-034")
+    @SneakyThrows
+    void shouldPrintErrorForHistoryWithNoDate() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String[] args = {
+                "history",
+                "--from",
+                "--to",
+        };
+        try {
+            client.run(args);
+
+            // Then
+        } catch (Exception e) {
+            assertTrue(e.toString().contains("Missing argument for option: f"), e.toString());
         }
     }
 
