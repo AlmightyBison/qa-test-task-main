@@ -508,6 +508,34 @@ public class ClientIntegrationTest {
         }
     }
 
+    @Test
+    @Tag("T-029")
+    @SneakyThrows
+    void shouldPrintHistoryInValidRangeTo() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String toDate = LocalDate.now().toString();
+        String daysOne = LocalDate.now().minusDays(1).toString();
+        String daysTwo = LocalDate.now().minusDays(2).toString();
+
+        String[] args = {
+                "history",
+                "--to", toDate,
+        };
+        client.run(args);
+
+        // Then
+        for (int i = 0; i < getOutputLength(); i++) {
+            if (i < 6) {
+                assertTrue(getOutputLine(i).contains(daysOne), getOutput());
+            } else {
+                assertTrue(getOutputLine(i).contains(daysTwo), getOutput());
+            }
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
