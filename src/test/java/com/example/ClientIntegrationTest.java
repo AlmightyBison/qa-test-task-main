@@ -598,6 +598,29 @@ public class ClientIntegrationTest {
         assertEquals("No events found", getOutput());
     }
 
+    @ParameterizedTest
+    @Tag("T-033")
+    @ValueSource(strings = {"2024-12-99", "2024-24-24", "aaa", "07-12-2024", "20241207"})
+    @SneakyThrows
+    void shouldPrintErrorForHistoryWithWrongDateFormat(String date) {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String[] args = {
+                "history",
+                "--from", date,
+                "--to", "date"
+        };
+        try {
+            client.run(args);
+
+            // Then
+        } catch (Exception e) {
+            assertTrue(e.toString().contains("Text '" + date + "' could not be parsed"));
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
