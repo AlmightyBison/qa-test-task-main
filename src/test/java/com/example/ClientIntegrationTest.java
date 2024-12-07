@@ -370,7 +370,7 @@ public class ClientIntegrationTest {
 
     @ParameterizedTest
     @Tag("T-021")
-    @ValueSource(strings = {"restart" , "d0wn", "1", "UP", "StAtUS"})
+    @ValueSource(strings = {"restart", "d0wn", "1", "UP", "StAtUS"})
     @SneakyThrows
     void shouldPrintUnknownCommandWhenUserUseInvalidCommand(String command) {
         // When
@@ -423,6 +423,36 @@ public class ClientIntegrationTest {
         assertTrue(getOutput().contains("up"));
         assertTrue(getOutput().contains("down"));
         assertTrue(getOutput().contains("history"));
+    }
+
+    @Test
+    @Tag("T-025")
+    @SneakyThrows
+    void shouldNotSaveNewStatusAfterEmptyCommand() {
+        // Given
+        client.run();
+        outputStreamCaptor.reset();
+
+        // When
+        client.run("status");
+
+        // Then
+        assertEquals("No events found", getOutput());
+    }
+
+    @Test
+    @Tag("T-026")
+    @SneakyThrows
+    void shouldNotSaveNewHistoryAfterEmptyCommand() {
+        // Given
+        client.run();
+        outputStreamCaptor.reset();
+
+        // When
+        client.run("history");
+
+        // Then
+        assertEquals("No events found", getOutput());
     }
 
     private String getOutput() {
