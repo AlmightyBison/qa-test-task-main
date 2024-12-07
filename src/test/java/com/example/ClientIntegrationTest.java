@@ -4,6 +4,8 @@ import lombok.SneakyThrows;
 import org.apache.commons.cli.ParseException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -364,6 +366,18 @@ public class ClientIntegrationTest {
 
         // Then
         checkHistoryLength(6);
+    }
+
+    @ParameterizedTest
+    @Tag("T-021")
+    @ValueSource(strings = {"restart" , "d0wn", "1", "UP", "StAtUS"})
+    @SneakyThrows
+    void shouldPrintUnknownCommandWhenUserUseInvalidCommand(String command) {
+        // When
+        client.run(command);
+
+        // Then
+        assertEquals(("Unknown command: " + command), getOutput());
     }
 
     private String getOutput() {
