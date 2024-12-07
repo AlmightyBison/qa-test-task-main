@@ -643,6 +643,29 @@ public class ClientIntegrationTest {
         }
     }
 
+    @Test
+    @Tag("T-035")
+    @SneakyThrows
+    void shouldPrintHistoryInAscOrder() {
+        // Given
+        generateEventsInJsonFile();
+
+        // When
+        String[] args = {
+                "history",
+                "--sort", "asc",
+        };
+        client.run(args);
+
+        //Then
+        List<LocalDateTime> timestamps = getTimestampsFromOutput(getOutput());
+
+        for (int i = 0; i < timestamps.size() - 1; i++) {
+            assertTrue(timestamps.get(i).isBefore(timestamps.get(i + 1)) ||
+                    timestamps.get(i).isEqual(timestamps.get(i + 1)), timestamps.toString());
+        }
+    }
+
     private String getOutput() {
         return outputStreamCaptor.toString().trim();
     }
@@ -778,5 +801,16 @@ public class ClientIntegrationTest {
         });
         events.add(event);
         objectMapper.writeValue(eventsFile, events);
+    }
+
+    private List<LocalDateTime> getTimestampsFromOutput(String output) {
+        List<LocalDateTime> timestamps = new ArrayList<>();
+        String[] lines = output.split("\n");
+
+        for (String line : lines) {
+            String[] parts = line.split("Timestamp: ");
+            timestamps.add(LocalDateTime.parse(parts[1].trim()));
+        }
+        return timestamps;
     }
 }
