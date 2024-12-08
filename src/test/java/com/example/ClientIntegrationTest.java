@@ -97,7 +97,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedStatusAfterServerRun() {
         // When
-        client.run("up");
+        serverIsStarted();
         outputStreamCaptor.reset();
 
         // Then
@@ -109,7 +109,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedHistoryAfterServerRun() {
         // When
-        client.run("up");
+        serverIsStarted();;
         outputStreamCaptor.reset();
 
         // Then
@@ -127,7 +127,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintAlreadyUpWhenServerIsAlreadyRun() {
         // When
-        serverRunUp();
+        serverIsStarted();
 
         // Then
         alreadyUp();
@@ -138,7 +138,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedStatusAfterServerRunTwice() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
         alreadyUp();
@@ -153,7 +153,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedHistoryAfterServerRunTwice() {
         // Given
-        serverRunUp();
+        serverIsStarted();
         alreadyUp();
         outputStreamCaptor.reset();
 
@@ -171,7 +171,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedUptimeWhenServerRun() {
         // When
-        serverRunUp();
+        serverIsStarted();
 
         // Then
         uptimeFor(3);
@@ -182,7 +182,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedStatusAfterServerRunForSomeTime() {
         // Given
-        serverRunUp();
+        serverIsStarted();
         uptimeFor(4);
 
         // When
@@ -199,7 +199,7 @@ public class ClientIntegrationTest {
     void shouldPrintExpectedHistoryAfterServerRunForSomeTime() {
         // Given
         String currentTimestamp = getCurrentTimestamp();
-        serverRunUp();
+        serverIsStarted();
         uptimeFor(3);
 
         // When
@@ -219,7 +219,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldWriteTwoEventsWhenUserDownServer() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
         client.run("down");
@@ -234,10 +234,10 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedStatusAfterServerDown() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
-        client.run("down");
+        serverIsShutDown();
         outputStreamCaptor.reset();
 
         // Then
@@ -249,11 +249,11 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedHistoryAfterServerDown() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
         String currentTimestamp = getCurrentTimestamp();
-        client.run("down");
+        serverIsShutDown();
         outputStreamCaptor.reset();
 
         // Then
@@ -278,10 +278,10 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintAlreadyDownWhenServerIsAlreadyDown() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
-        serverRunDown();
+        serverIsShutDown();
 
         // Then
         alreadyDown();
@@ -292,10 +292,10 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedStatusAfterServerAlreadyDown() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
-        serverRunDown();
+        serverIsShutDown();
         alreadyDown();
         outputStreamCaptor.reset();
 
@@ -308,11 +308,11 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedHistoryAfterServerAlreadyDown() {
         // Given
-        serverRunUp();
+        serverIsStarted();
 
         // When
         String currentTimestamp = getCurrentTimestamp();
-        serverRunDown();
+        serverIsShutDown();
         alreadyDown();
         outputStreamCaptor.reset();
 
@@ -330,12 +330,12 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldResetUptimeAfterServerDownAndRunAgain() {
         // Given
-        serverRunUp();
+        serverIsStarted();
         uptimeFor(3);
 
         // When
-        serverRunDown();
-        serverRunUp();
+        serverIsShutDown();
+        serverIsStarted();
 
         // And
         checkServerStatus("up", "0");
@@ -349,15 +349,15 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedHistoryAfterServerDownAndRunAgain() {
         // Given
-        serverRunUp();
+        serverIsStarted();
         uptimeFor(3);
 
         // When
-        serverRunDown();
+        serverIsShutDown();
 
         // And
         String currentTimestamp = getCurrentTimestamp();
-        client.run("up");
+        serverIsStarted();
         outputStreamCaptor.reset();
 
         // And
@@ -787,13 +787,12 @@ public class ClientIntegrationTest {
         return String.valueOf(dateTime);
     }
 
-    private void serverRunUp() throws ParseException, IOException {
-        // When
-        client.run("up");
-        outputStreamCaptor.reset();
+    private void serverIsStarted() throws IOException {
+        Event startingEvent = new Event(Status.STARTING, System.currentTimeMillis());
+        Event upEvent = new Event(Status.UP, System.currentTimeMillis());
 
-        // Then
-        checkServerStatus("up", "0");
+        writeEventToFile(startingEvent);
+        writeEventToFile(upEvent);
     }
 
     private void alreadyUp() throws ParseException, IOException {
@@ -814,13 +813,12 @@ public class ClientIntegrationTest {
         checkServerStatus("up", String.valueOf(sec));
     }
 
-    private void serverRunDown() throws ParseException, IOException {
-        // When
-        client.run("down");
-        outputStreamCaptor.reset();
+    private void serverIsShutDown() throws IOException {
+        Event stoppingEvent = new Event(Status.STOPPING, System.currentTimeMillis());
+        Event downEvent = new Event(Status.DOWN, System.currentTimeMillis());
 
-        // Then
-        checkServerStatus("down", "0");
+        writeEventToFile(stoppingEvent);
+        writeEventToFile(downEvent);
     }
 
     private void alreadyDown() throws ParseException, IOException {
