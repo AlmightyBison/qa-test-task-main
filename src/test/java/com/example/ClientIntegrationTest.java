@@ -19,8 +19,7 @@ import java.time.ZoneOffset;
 import java.util.*;
 
 import static java.lang.Thread.sleep;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = {Client.class, ClientIntegrationTest.TestConfig.class})
 public class ClientIntegrationTest {
@@ -612,13 +611,10 @@ public class ClientIntegrationTest {
                 "--from", date,
                 "--to", "date"
         };
-        try {
-            client.run(args);
+        Exception exception = assertThrows(java.time.format.DateTimeParseException.class, () -> client.run(args));
 
-            // Then
-        } catch (Exception e) {
-            assertTrue(e.toString().contains("Text '" + date + "' could not be parsed"), e.toString());
-        }
+        // Then
+        assertTrue(exception.getMessage().contains("Text '" + date + "' could not be parsed"), exception.getMessage());
     }
 
     @Test
@@ -634,13 +630,11 @@ public class ClientIntegrationTest {
                 "--from",
                 "--to",
         };
-        try {
-            client.run(args);
+        Exception exception = assertThrows(
+                org.apache.commons.cli.MissingArgumentException.class, () -> client.run(args));
 
-            // Then
-        } catch (Exception e) {
-            assertTrue(e.toString().contains("Missing argument for option: f"), e.toString());
-        }
+        // Then
+        assertTrue(exception.getMessage().contains("Missing argument for option: f"), exception.getMessage());
     }
 
     @Test
@@ -723,13 +717,10 @@ public class ClientIntegrationTest {
                 "history",
                 "--status", "STATUS",
         };
-        try {
-            client.run(args);
+        Exception exception = assertThrows(java.lang.IllegalArgumentException.class, () -> client.run(args));
 
-            // Then
-        } catch (Exception e) {
-            assertTrue(e.toString().contains("No enum constant com.example.Status."), e.toString());
-        }
+        // Then
+        assertTrue(exception.getMessage().contains("No enum constant com.example.Status."), exception.getMessage());
     }
 
     private String getOutput() {
