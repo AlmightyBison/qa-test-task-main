@@ -109,7 +109,7 @@ public class ClientIntegrationTest {
     @SneakyThrows
     void shouldPrintExpectedHistoryAfterServerRun() {
         // When
-        serverIsStarted();;
+        serverIsStarted();
         outputStreamCaptor.reset();
 
         // Then
@@ -755,8 +755,7 @@ public class ClientIntegrationTest {
 
         String[] lines = getOutput().split("\n");
 
-        boolean isContains = lines[linePos].contains("Status: " + status
-                + ", Timestamp: " + timestamp);
+        boolean isContains = lines[linePos].contains("Status: " + status + ", Timestamp: " + timestamp);
 
         if (isContains) outputStreamCaptor.reset();
 
@@ -791,8 +790,7 @@ public class ClientIntegrationTest {
         Event startingEvent = new Event(Status.STARTING, System.currentTimeMillis());
         Event upEvent = new Event(Status.UP, System.currentTimeMillis());
 
-        writeEventToFile(startingEvent);
-        writeEventToFile(upEvent);
+        writeEventToFile(List.of(startingEvent, upEvent));
     }
 
     private void alreadyUp() throws ParseException, IOException {
@@ -817,8 +815,7 @@ public class ClientIntegrationTest {
         Event stoppingEvent = new Event(Status.STOPPING, System.currentTimeMillis());
         Event downEvent = new Event(Status.DOWN, System.currentTimeMillis());
 
-        writeEventToFile(stoppingEvent);
-        writeEventToFile(downEvent);
+        writeEventToFile(List.of(stoppingEvent, downEvent));
     }
 
     private void alreadyDown() throws ParseException, IOException {
@@ -829,16 +826,19 @@ public class ClientIntegrationTest {
         assertEquals("Already DOWN", getOutput());
     }
 
-    private void generateEventsInJsonFile() throws IOException, InterruptedException {
+    private void generateEventsInJsonFile() throws IOException {
         ArrayList<Status> arrStatuses = getArrStatuses();
+        List<Event> events = new ArrayList<Event>();
+        int dayDeviationFrom = 1;
+        int dayDeviationTo = 3;
 
-        for (int i = 1; i < 3; i++) {
+        for (int i = dayDeviationFrom; i < dayDeviationTo; i++) {
             for (int j = 0; j < arrStatuses.size(); j++) {
-                writeEventToFile(new Event(arrStatuses.get(j), getCurrentDateMinusDaysAndMinutes(i, j)));
-                writeEventToFile(new Event(arrStatuses.get(j), getCurrentDatePlusDaysAndMinutes(i, j)));
-                sleep(100);
+                events.add(new Event(arrStatuses.get(j), getCurrentDateMinusDaysAndMinutes(i, j)));
+                events.add(new Event(arrStatuses.get(j), getCurrentDatePlusDaysAndMinutes(i, j)));
             }
         }
+        writeEventToFile(events);
     }
 
     public ArrayList<Status> getArrStatuses() {
@@ -854,17 +854,16 @@ public class ClientIntegrationTest {
         return LocalDateTime.now().plusDays(days).plusMinutes(minutes).toEpochSecond(ZoneOffset.UTC) * 1000;
     }
 
-    private void writeEventToFile(Event event) throws IOException {
+    private void writeEventToFile(List<Event> events) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         File eventsFile = new File(tempDir, "events.json");
 
         if (eventsFile.createNewFile()) {
             objectMapper.writeValue(eventsFile, Collections.emptyList());
         }
-        List<Event> events = objectMapper.readValue(eventsFile, new TypeReference<>() {
-        });
-        events.add(event);
-        objectMapper.writeValue(eventsFile, events);
+        List<Event> oldEvents = objectMapper.readValue(eventsFile, new TypeReference<>() {});
+        oldEvents.addAll(events);
+        objectMapper.writeValue(eventsFile, oldEvents);
     }
 
     private List<LocalDateTime> getTimestampsFromOutput(String output) {
