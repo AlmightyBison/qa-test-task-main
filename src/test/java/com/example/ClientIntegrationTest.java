@@ -92,6 +92,36 @@ public class ClientIntegrationTest {
     }
 
     @Test
+    @Tag("T-003a")
+    @SneakyThrows
+    void shouldPrintExpectedStatusAfterFailedRun() throws ParseException, IOException {
+        Event startingEvent = new Event(Status.STARTING, System.currentTimeMillis());
+        Event upEvent = new Event(Status.FAILED, System.currentTimeMillis());
+
+        writeEventToFile(List.of(startingEvent, upEvent));
+        outputStreamCaptor.reset();
+
+        client.run("status");
+
+        assertTrue(getOutput().contains("No events found"));
+    }
+
+    @Test
+    @Tag("T-003b")
+    @SneakyThrows
+    void shouldPrintExpectedStatusAfterFailedDown() throws ParseException, IOException {
+        Event startingEvent = new Event(Status.STOPPING, System.currentTimeMillis());
+        Event upEvent = new Event(Status.FAILED, System.currentTimeMillis());
+
+        writeEventToFile(List.of(startingEvent, upEvent));
+        outputStreamCaptor.reset();
+
+        client.run("status");
+
+        assertTrue(getOutput().contains("No events found"));
+    }
+
+    @Test
     @Tag("T-004")
     @SneakyThrows
     void shouldPrintExpectedStatusAfterServerRun() throws ParseException, IOException {
