@@ -60,7 +60,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-001")
     @SneakyThrows
-    void shouldPrintNoEventsWhenUserRunsStatusWithEmptyEventsFile() {
+    void shouldPrintNoEventsWhenUserRunsStatusWithEmptyEventsFile() throws ParseException, IOException {
         // When
         client.run("status");
 
@@ -71,7 +71,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-002")
     @SneakyThrows
-    void shouldPrintNoEventsWhenUserRunsHistoryWithEmptyEventsFile() {
+    void shouldPrintNoEventsWhenUserRunsHistoryWithEmptyEventsFile() throws ParseException, IOException {
         // When
         client.run("history");
 
@@ -82,7 +82,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-003")
     @SneakyThrows
-    void shouldWriteTwoEventsWhenUserRunsServer() {
+    void shouldWriteTwoEventsWhenUserRunsServer() throws ParseException, IOException {
         // When
         client.run("up");
 
@@ -94,7 +94,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-004")
     @SneakyThrows
-    void shouldPrintExpectedStatusAfterServerRun() {
+    void shouldPrintExpectedStatusAfterServerRun() throws ParseException, IOException {
         // When
         serverIsStarted();
         outputStreamCaptor.reset();
@@ -106,7 +106,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-005")
     @SneakyThrows
-    void shouldPrintExpectedHistoryAfterServerRun() {
+    void shouldPrintExpectedHistoryAfterServerRun() throws ParseException, IOException {
         // When
         serverIsStarted();
         outputStreamCaptor.reset();
@@ -124,23 +124,23 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-006")
     @SneakyThrows
-    void shouldPrintAlreadyUpWhenServerIsAlreadyRun() {
+    void shouldPrintAlreadyUpWhenServerIsAlreadyRun() throws ParseException, IOException {
         // When
         serverIsStarted();
 
         // Then
-        alreadyUp();
+        checkAlreadyUpStatus();
     }
 
     @Test
     @Tag("T-007")
     @SneakyThrows
-    void shouldPrintExpectedStatusAfterServerRunTwice() {
+    void shouldPrintExpectedStatusAfterServerRunTwice() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
         // When
-        alreadyUp();
+        checkAlreadyUpStatus();
         outputStreamCaptor.reset();
 
         // Then
@@ -150,10 +150,12 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-008")
     @SneakyThrows
-    void shouldPrintExpectedHistoryAfterServerRunTwice() {
+    void shouldPrintExpectedHistoryAfterServerRunTwice() throws ParseException, IOException {
         // Given
         serverIsStarted();
-        alreadyUp();
+
+        //When
+        checkAlreadyUpStatus();
         outputStreamCaptor.reset();
 
         // Then
@@ -168,23 +170,25 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-009")
     @SneakyThrows
-    void shouldPrintExpectedUptimeWhenServerRun() {
+    void shouldPrintExpectedUptimeWhenServerRun() throws ParseException, IOException, InterruptedException {
         // When
         serverIsStarted();
 
         // Then
-        uptimeFor(3);
+        checkServerUptimeFor(3);
     }
 
     @Test
     @Tag("T-010")
     @SneakyThrows
-    void shouldPrintExpectedStatusAfterServerRunForSomeTime() {
+    void shouldPrintExpectedStatusAfterServerRunForSomeTime() throws ParseException, IOException, InterruptedException {
         // Given
         serverIsStarted();
-        uptimeFor(4);
 
         // When
+        checkServerUptimeFor(4);
+
+        // And
         // Server is working for extra 1 sec
         sleep(1000);
 
@@ -195,13 +199,15 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-011")
     @SneakyThrows
-    void shouldPrintExpectedHistoryAfterServerRunForSomeTime() {
+    void shouldPrintExpectedHistoryAfterServerRunForSomeTime() throws ParseException, IOException, InterruptedException {
         // Given
         String currentTimestamp = getCurrentTimestamp();
         serverIsStarted();
-        uptimeFor(3);
 
         // When
+        checkServerUptimeFor(3);
+
+        // And
         // Server is working for extra 1 sec
         sleep(1000);
 
@@ -216,7 +222,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-012")
     @SneakyThrows
-    void shouldWriteTwoEventsWhenUserDownServer() {
+    void shouldWriteTwoEventsWhenUserDownServer() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
@@ -231,7 +237,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-013")
     @SneakyThrows
-    void shouldPrintExpectedStatusAfterServerDown() {
+    void shouldPrintExpectedStatusAfterServerDown() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
@@ -246,7 +252,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-014")
     @SneakyThrows
-    void shouldPrintExpectedHistoryAfterServerDown() {
+    void shouldPrintExpectedHistoryAfterServerDown() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
@@ -267,15 +273,15 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-015")
     @SneakyThrows
-    void shouldPrintAlreadyDownWithEmptyEventsFile() {
+    void shouldPrintAlreadyDownWithEmptyEventsFile() throws ParseException, IOException {
         // Assumption of the behavior
-        alreadyDown();
+        checkAlreadyDownStatus();
     }
 
     @Test
     @Tag("T-016")
     @SneakyThrows
-    void shouldPrintAlreadyDownWhenServerIsAlreadyDown() {
+    void shouldPrintAlreadyDownWhenServerIsAlreadyDown() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
@@ -283,19 +289,21 @@ public class ClientIntegrationTest {
         serverIsShutDown();
 
         // Then
-        alreadyDown();
+        checkAlreadyDownStatus();
     }
 
     @Test
     @Tag("T-017")
     @SneakyThrows
-    void shouldPrintExpectedStatusAfterServerAlreadyDown() {
+    void shouldPrintExpectedStatusAfterServerAlreadyDown() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
         // When
         serverIsShutDown();
-        alreadyDown();
+
+        // And
+        checkAlreadyDownStatus();
         outputStreamCaptor.reset();
 
         // Then
@@ -305,14 +313,16 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-018")
     @SneakyThrows
-    void shouldPrintExpectedHistoryAfterServerAlreadyDown() {
+    void shouldPrintExpectedHistoryAfterServerAlreadyDown() throws ParseException, IOException {
         // Given
         serverIsStarted();
 
         // When
         String currentTimestamp = getCurrentTimestamp();
         serverIsShutDown();
-        alreadyDown();
+
+        // And
+        checkAlreadyDownStatus();
         outputStreamCaptor.reset();
 
         // Then
@@ -327,10 +337,10 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-019")
     @SneakyThrows
-    void shouldResetUptimeAfterServerDownAndRunAgain() {
+    void shouldResetUptimeAfterServerDownAndRunAgain() throws ParseException, IOException, InterruptedException {
         // Given
         serverIsStarted();
-        uptimeFor(3);
+        checkServerUptimeFor(3);
 
         // When
         serverIsShutDown();
@@ -340,16 +350,16 @@ public class ClientIntegrationTest {
         checkServerStatus("up", "0");
 
         // Then
-        uptimeFor(2);
+        checkServerUptimeFor(2);
     }
 
     @Test
     @Tag("T-020")
     @SneakyThrows
-    void shouldPrintExpectedHistoryAfterServerDownAndRunAgain() {
+    void shouldPrintExpectedHistoryAfterServerDownAndRunAgain() throws ParseException, IOException, InterruptedException {
         // Given
         serverIsStarted();
-        uptimeFor(3);
+        checkServerUptimeFor(3);
 
         // When
         serverIsShutDown();
@@ -372,7 +382,7 @@ public class ClientIntegrationTest {
     @Tag("T-021")
     @ValueSource(strings = {"restart", "d0wn", "1", "UP", "StAtUS"})
     @SneakyThrows
-    void shouldPrintUnknownCommandWhenUserUseInvalidCommand(String command) {
+    void shouldPrintUnknownCommandWhenUserUseInvalidCommand(String command) throws ParseException, IOException {
         // When
         client.run(command);
 
@@ -383,7 +393,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-022")
     @SneakyThrows
-    void shouldNotSaveNewStatusAfterInvalidCommand() {
+    void shouldNotSaveNewStatusAfterInvalidCommand() throws ParseException, IOException {
         // Given
         client.run("command");
         outputStreamCaptor.reset();
@@ -398,7 +408,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-023")
     @SneakyThrows
-    void shouldNotSaveNewHistoryAfterInvalidCommand() {
+    void shouldNotSaveNewHistoryAfterInvalidCommand() throws ParseException, IOException {
         // Given
         client.run("command");
         outputStreamCaptor.reset();
@@ -413,7 +423,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-024")
     @SneakyThrows
-    void shouldPrintCommandOptionsWhenUserUseEmptyCommand() {
+    void shouldPrintCommandOptionsWhenUserUseEmptyCommand() throws ParseException, IOException {
         // When
         client.run();
 
@@ -428,7 +438,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-025")
     @SneakyThrows
-    void shouldNotSaveNewStatusAfterEmptyCommand() {
+    void shouldNotSaveNewStatusAfterEmptyCommand() throws ParseException, IOException {
         // Given
         client.run();
         outputStreamCaptor.reset();
@@ -443,7 +453,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-026")
     @SneakyThrows
-    void shouldNotSaveNewHistoryAfterEmptyCommand() {
+    void shouldNotSaveNewHistoryAfterEmptyCommand() throws ParseException, IOException {
         // Given
         client.run();
         outputStreamCaptor.reset();
@@ -458,7 +468,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-027")
     @SneakyThrows
-    void shouldPrintHistoryInValidRangeFromTo() {
+    void shouldPrintHistoryInValidRangeFromTo() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -482,7 +492,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-028")
     @SneakyThrows
-    void shouldPrintHistoryInValidRangeFrom() {
+    void shouldPrintHistoryInValidRangeFrom() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -510,7 +520,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-029")
     @SneakyThrows
-    void shouldPrintHistoryInValidRangeTo() {
+    void shouldPrintHistoryInValidRangeTo() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -538,7 +548,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-030")
     @SneakyThrows
-    void shouldNotPrintHistoryInInvalidRangeFromTo() {
+    void shouldNotPrintHistoryInInvalidRangeFromTo() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -560,7 +570,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-031")
     @SneakyThrows
-    void shouldNotPrintHistoryInInvalidRangeFrom() {
+    void shouldNotPrintHistoryInInvalidRangeFrom() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -580,7 +590,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-032")
     @SneakyThrows
-    void shouldNotPrintHistoryInInvalidRangeTo() {
+    void shouldNotPrintHistoryInInvalidRangeTo() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -601,7 +611,7 @@ public class ClientIntegrationTest {
     @Tag("T-033")
     @ValueSource(strings = {"2024-12-99", "2024-24-24", "aaa", "07-12-2024", "20241207"})
     @SneakyThrows
-    void shouldPrintErrorForHistoryWithWrongDateFormat(String date) {
+    void shouldPrintErrorForHistoryWithWrongDateFormat(String date) throws IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -620,7 +630,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-034")
     @SneakyThrows
-    void shouldPrintErrorForHistoryWithNoDate() {
+    void shouldPrintErrorForHistoryWithNoDate() throws IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -640,7 +650,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-035")
     @SneakyThrows
-    void shouldPrintHistoryInAscOrder() {
+    void shouldPrintHistoryInAscOrder() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -663,7 +673,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-036")
     @SneakyThrows
-    void shouldPrintHistoryInDescOrder() {
+    void shouldPrintHistoryInDescOrder() throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -687,7 +697,7 @@ public class ClientIntegrationTest {
     @Tag("T-037")
     @ValueSource(strings = {"STARTING", "UP", "STOPPING", "DOWN", "FAILED"})
     @SneakyThrows
-    void shouldPrintHistoryWithSpecificStatus(String status) {
+    void shouldPrintHistoryWithSpecificStatus(String status) throws ParseException, IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -708,7 +718,7 @@ public class ClientIntegrationTest {
     @Test
     @Tag("T-038")
     @SneakyThrows
-    void shouldPrintErrorForHistoryWithInvalidStatus() {
+    void shouldPrintErrorForHistoryWithInvalidStatus() throws IOException {
         // Given
         generateEventsInJsonFile();
 
@@ -784,7 +794,7 @@ public class ClientIntegrationTest {
         writeEventToFile(List.of(startingEvent, upEvent));
     }
 
-    private void alreadyUp() throws ParseException, IOException {
+    private void checkAlreadyUpStatus() throws ParseException, IOException {
         // When
         client.run("up");
 
@@ -792,7 +802,7 @@ public class ClientIntegrationTest {
         assertEquals("Already UP", getOutput());
     }
 
-    private void uptimeFor(int sec)
+    private void checkServerUptimeFor(int sec)
             throws ParseException, IOException, InterruptedException {
         // When
         // Server is working for X sec
@@ -809,7 +819,7 @@ public class ClientIntegrationTest {
         writeEventToFile(List.of(stoppingEvent, downEvent));
     }
 
-    private void alreadyDown() throws ParseException, IOException {
+    private void checkAlreadyDownStatus() throws ParseException, IOException {
         // When
         client.run("down");
 
